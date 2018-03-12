@@ -4,9 +4,9 @@ import guru.springframework.spring5recipeapp.commands.RecipeCommand;
 import guru.springframework.spring5recipeapp.converters.RecipeCommandToRecipe;
 import guru.springframework.spring5recipeapp.converters.RecipeToRecipeCommand;
 import guru.springframework.spring5recipeapp.domain.Recipe;
+import guru.springframework.spring5recipeapp.exceptions.NotFoundException;
 import guru.springframework.spring5recipeapp.repository.RecipeRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +22,6 @@ public class RecipeServiceImpl implements RecipeService {
 	private final RecipeCommandToRecipe recipeCommandToRecipe;
 	private final RecipeToRecipeCommand recipeToRecipeCommand;
 
-	@Autowired
 	public RecipeServiceImpl(RecipeRepository recipeRepository, RecipeCommandToRecipe recipeCommandToRecipe, RecipeToRecipeCommand recipeToRecipeCommand) {
 		this.recipeRepository = recipeRepository;
 		this.recipeCommandToRecipe = recipeCommandToRecipe;
@@ -31,9 +30,11 @@ public class RecipeServiceImpl implements RecipeService {
 
 	@Override
 	public Set<Recipe> getRecipes() {
-		Set<Recipe> recipes = new HashSet<>();
-		recipeRepository.findAll().iterator().forEachRemaining(recipes::add);
-		return recipes;
+		log.debug("I'm in the service");
+
+		Set<Recipe> recipeSet = new HashSet<>();
+		recipeRepository.findAll().iterator().forEachRemaining(recipeSet::add);
+		return recipeSet;
 	}
 
 	@Override
@@ -42,7 +43,8 @@ public class RecipeServiceImpl implements RecipeService {
 		Optional<Recipe> recipeOptional = recipeRepository.findById(l);
 
 		if (!recipeOptional.isPresent()) {
-			throw new RuntimeException("Recipe Not Found!");
+			//throw new RuntimeException("Recipe Not Found!");
+			throw new NotFoundException("Recipe Not Found");
 		}
 
 		return recipeOptional.get();
@@ -65,7 +67,7 @@ public class RecipeServiceImpl implements RecipeService {
 	}
 
 	@Override
-	public void deleteById(Long id) {
-		recipeRepository.deleteById(id);
+	public void deleteById(Long idToDelete) {
+		recipeRepository.deleteById(idToDelete);
 	}
 }
