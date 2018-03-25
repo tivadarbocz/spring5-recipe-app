@@ -13,15 +13,27 @@ public class IndexController {
 
 	private final RecipeService recipeService;
 
+	/* @Autowired
+	private SpringTemplateEngine engine;*/
+
 	@Autowired
 	public IndexController(RecipeService recipeService) {
 		this.recipeService = recipeService;
 	}
 
-	@RequestMapping({"","/","index"})
-	public String getIndexPage(Model model){
+	@RequestMapping(value = { "", "/", "index" })
+	public String getIndexPage(Model model/*,   HttpServletRequest request, HttpServletResponse response*/)/* throws IOException*/ {
 		log.debug("Getting index page...");
 		model.addAttribute("recipes", recipeService.getRecipes());
+		//		WebContext webContext = new WebContext(request,response, ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getServletContext());
+		//		webContext.setVariable("recipes", recipeService.getRecipes());
+		//		TemplateEngine te = new TemplateEngine();
+		//
+		//
+		//		String s = engine.process("index", webContext);
+		//		System.out.println(s);
+		//		te.process("index", webContext, response.getWriter());
+
 		return "index";
 	}
 }

@@ -1,19 +1,20 @@
 package guru.springframework.spring5recipeapp.controllers;
 
 import guru.springframework.spring5recipeapp.commands.RecipeCommand;
-import guru.springframework.spring5recipeapp.exceptions.NotFoundException;
 import guru.springframework.spring5recipeapp.service.RecipeService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
+
+import javax.validation.Valid;
 
 @Slf4j
 @Controller
 public class RecipeController {
 
+	private static final String RECIPE_RECIPEFORM_URL = "recipe/recipeform";
 	private final RecipeService recipeService;
 
 	public RecipeController(RecipeService recipeService) {
@@ -41,12 +42,21 @@ public class RecipeController {
 	@RequestMapping("recipe/{id}/update")
 	public String updateRecipe(@PathVariable String id, Model model) {
 		model.addAttribute("recipe", recipeService.findCommandById(Long.valueOf(id)));
-		return "recipe/recipeform";
+		return RECIPE_RECIPEFORM_URL;
 	}
 
-	@PostMapping
-	@RequestMapping("recipe")
-	public String saveOrUpdate(@ModelAttribute RecipeCommand command) {
+	@PostMapping("recipe")
+	public String saveOrUpdate(@Valid @ModelAttribute("recipe") RecipeCommand command, BindingResult bindingResult) {
+
+		if (bindingResult.hasErrors()) {
+
+			bindingResult.getAllErrors().forEach(objectError -> {
+				log.debug(objectError.toString());
+			});
+
+			return RECIPE_RECIPEFORM_URL;
+		}
+
 		RecipeCommand savedCommand = recipeService.saveRecipeCommand(command);
 
 		return "redirect:/recipe/" + savedCommand.getId() + "/show";
@@ -62,33 +72,4 @@ public class RecipeController {
 		return "redirect:/";
 	}
 
-	@ResponseStatus(HttpStatus.NOT_FOUND)
-	@ExceptionHandler(NotFoundException.class)
-	public ModelAndView handleNotFound(Exception e) {
-
-		log.error("Handling not found exception");
-		log.error(e.getMessage());
-
-		ModelAndView modelAndView = new ModelAndView();
-
-		modelAndView.setViewName("404error");
-		modelAndView.addObject("exception", e);
-
-		return modelAndView;
-	}
-
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	@ExceptionHandler(NumberFormatException.class)
-	public ModelAndView handleNumberFOrmatException(Exception e) {
-
-		log.error("Handling number format exception");
-		log.error(e.getMessage());
-
-		ModelAndView modelAndView = new ModelAndView();
-
-		modelAndView.setViewName("400error");
-		modelAndView.addObject("exception", e);
-
-		return modelAndView;
-	}
 }
